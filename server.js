@@ -1,4 +1,3 @@
-// ESM
 import Fastify from "fastify";
 import FastifyVite from "@fastify/vite";
 import { renderToString } from "vue/server-renderer";
@@ -29,21 +28,15 @@ const main = async (dev) => {
 
   fastify.setErrorHandler((err, req, reply) => {
     console.error(err);
-    reply.send(err);
+    return reply.send(err);
   });
 
   await fastify.vite.ready();
 
-  fastify.get("*", async (req, res) => {
-    // const filename = path.join(__dirname, "src", "index.html");
-    // fs.readFile(filename, (err, template) => {
-    //   if (err) {
-    //     return res.send(err);
-    //   } else {
-    //     return res.type("text/html").send(template);
-    //   }
-    // });
-    res.html(await res.render());
+  fastify.get("*", async (req, reply) => {
+    const filename = path.join(__dirname, "index.html");
+    const template = fs.readFileSync(filename, "utf-8");
+    reply.type("text/html").send(template);
   });
 
   return fastify;
@@ -53,7 +46,7 @@ const start = async () => {
   const server = await main();
 
   try {
-    await server.listen({ port: 3000 });
+    await server.listen({ port: 3000, host: "0.0.0.0" });
   } catch (err) {
     server.log.error(err);
     process.exit(1);
